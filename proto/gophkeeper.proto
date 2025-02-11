@@ -1,0 +1,57 @@
+//gophkeeper.proto
+syntax = "proto3";
+
+package proto;
+
+option go_package = "internal/grpcapi/proto";
+
+message User {
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterRequest {
+  User userData = 1;
+}
+
+message RegisterResponse {}
+
+message LoginRequest {
+  User userData = 1;
+}
+
+message LoginResponse {}
+
+message Secret {
+  string data = 1;
+  string meta = 2;
+}
+
+message AddSecretRequest {
+  Secret Secret = 1;
+}
+
+message AddSecretResponse {}
+
+message EditSecretRequest {
+  string id = 1;
+  Secret Secret = 2;
+}
+
+message EditSecretResponse {}
+
+message GetSecretRequest {
+  string id = 1;
+}
+
+message GetSecretResponse {
+  repeated Secret Secret = 1;
+}
+
+service Keeper {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc AddSecret(AddSecretRequest) returns (AddSecretResponse);
+  rpc EditSecret(EditSecretRequest) returns (EditSecretResponse);
+  rpc GetSecret(GetSecretRequest) returns (GetSecretResponse);
+}
