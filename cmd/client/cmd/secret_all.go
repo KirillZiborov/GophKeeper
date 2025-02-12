@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KirillZiborov/GophKeeper/internal/encryption"
 	"github.com/KirillZiborov/GophKeeper/internal/logging"
+	"github.com/KirillZiborov/GophKeeper/pkg/encryption"
 	"github.com/KirillZiborov/GophKeeper/proto"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

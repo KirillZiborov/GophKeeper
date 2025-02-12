@@ -1,3 +1,5 @@
+// Package encryption provides cryptography utilities for encoding/decoding secret data
+// and hashing passwords.
 package encryption
 
 import (

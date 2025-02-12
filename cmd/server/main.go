@@ -1,7 +1,6 @@
-// Package main implements a URL shortener server.
-// It initializes configuration, logging and storage (file or database),
-// sets up HTTP routes with middleware, registers pprof handlers for profiling,
-// and starts the HTTP server.
+// Package main implements a GophKeeper server.
+// It initializes configuration, logging and storage (database),
+// sets up gRPC server with logging interceptor.
 package main
 
 import (
@@ -36,8 +35,7 @@ var (
 )
 
 // main is the entrypoint of the GophKeeper server.
-// It initializes configuration, logging and storage, sets up HTTP routes with middleware,
-// registers pprof handlers for profiling, and starts the HTTP server.
+// It initializes configuration, logging and storage and starts gRPC server with logging interceptor,
 func main() {
 	// Print build info.
 	fmt.Printf("Build version: %s\n", buildVersion)
@@ -73,10 +71,9 @@ func main() {
 		}
 		defer db.Close()
 
-		// Use the database store for URL storage.
+		// Use the database storage.
 		store = storage.NewDBStore(db)
 	} else {
-		// If no database is configured, use a file-based store.
 		logging.Sugar.Errorw("No database path specified", "error", err)
 		return
 	}

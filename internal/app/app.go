@@ -8,9 +8,9 @@ import (
 
 	"github.com/KirillZiborov/GophKeeper/internal/auth"
 	"github.com/KirillZiborov/GophKeeper/internal/config"
-	"github.com/KirillZiborov/GophKeeper/internal/encryption"
 	"github.com/KirillZiborov/GophKeeper/internal/models"
 	"github.com/KirillZiborov/GophKeeper/internal/storage"
+	"github.com/KirillZiborov/GophKeeper/pkg/encryption"
 	"github.com/google/uuid"
 )
 

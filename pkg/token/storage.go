@@ -1,3 +1,4 @@
+// Package token provides functionalities for storing user's authentification tokens.
 package token
 
 import (

@@ -1,4 +1,4 @@
-// Package logging provides logging utilities and middleware for HTTP server.
+// Package logging provides logging utilities for client and server.
 // It leverages the zap library to offer structured and performant logging.
 package logging
 
