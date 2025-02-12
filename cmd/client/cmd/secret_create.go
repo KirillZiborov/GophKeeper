@@ -114,7 +114,7 @@ var secretCreateCmd = &cobra.Command{
 			logging.Sugar.Fatalf("Failed to add secret: %v", err)
 		}
 
-		fmt.Printf("Secret created with id: %s\n", resp.Id)
+		fmt.Printf("Secret created with id: %d\n", resp.Id)
 	},
 }
 

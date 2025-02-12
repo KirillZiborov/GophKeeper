@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ var secretUpdateCmd = &cobra.Command{
 
 		// Need secret id for update.
 		secretID, err := cmd.Flags().GetString("id")
-		if err != nil || secretID == "" {
+		if err != nil {
 			logging.Sugar.Fatal("Secret id (--id) must be provided")
 		}
 
@@ -92,9 +93,13 @@ var secretUpdateCmd = &cobra.Command{
 		defer conn.Close()
 
 		client := proto.NewKeeperClient(conn)
-		// Формируем запрос для обновления секрета.
+
+		id, err := strconv.ParseInt(secretID, 10, 64)
+		if err != nil {
+			logging.Sugar.Fatalf("Failed to parse id: %v", err)
+		}
 		req := &proto.EditSecretRequest{
-			Id: secretID, // Здесь передаем идентификатор секрета (как строку, если в proto оно строковое).
+			Id: id,
 			Secret: &proto.Secret{
 				Data: encryptedData,
 				Meta: name,
@@ -111,7 +116,7 @@ var secretUpdateCmd = &cobra.Command{
 			logging.Sugar.Fatalf("Failed to update secret: %v", err)
 		}
 
-		fmt.Printf("Secret updated successfully (id: %s)\n", secretID)
+		fmt.Printf("Secret updated successfully (id: %d)\n", id)
 	},
 }
 

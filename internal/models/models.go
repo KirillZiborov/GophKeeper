@@ -9,7 +9,7 @@ type User struct {
 
 // Secret provides a structure for secret data.
 type Secret struct {
-	ID     string `json:"id"`      // Unique credentials id
+	ID     int64  `json:"id"`      // Unique credentials id
 	UserID string `json:"user_id"` // User's id
 	Data   string `json:"data"`    // Secret data
 	Meta   string `json:"meta"`    // Additional Metadata

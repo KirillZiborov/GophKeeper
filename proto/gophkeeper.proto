@@ -32,11 +32,11 @@ message AddSecretRequest {
 }
 
 message AddSecretResponse {
-  string Id = 1;
+  int64 Id = 1;
 }
 
 message EditSecretRequest {
-  string id = 1;
+  int64 id = 1;
   Secret Secret = 2;
 }
 

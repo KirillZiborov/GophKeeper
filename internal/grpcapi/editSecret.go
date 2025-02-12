@@ -18,9 +18,6 @@ func (s *GophKeeperServer) EditSecret(ctx context.Context, req *proto.EditSecret
 	}
 
 	id := req.GetId()
-	if id == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "id field is empty")
-	}
 
 	creds := req.GetSecret()
 	if creds == nil || creds.Data == "" {
@@ -28,7 +25,7 @@ func (s *GophKeeperServer) EditSecret(ctx context.Context, req *proto.EditSecret
 	}
 
 	// Call to business logic.
-	err := s.svc.EditSecret(ctx, userID, id, creds.Data, creds.Meta)
+	err := s.svc.EditSecret(ctx, id, userID, creds.Data, creds.Meta)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to edit Secret: %v", err)
 	}

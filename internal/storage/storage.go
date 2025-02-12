@@ -24,7 +24,7 @@ type Storage interface {
 	// Authentificate user by his username and password. Returns User structure.
 	GetUser(username string) (models.User, error)
 	// Add new secret data for user with userID.
-	AddSecret(cred *models.Secret) error
+	AddSecret(cred *models.Secret) (int64, error)
 	// Edit an existing secret data by his ID.
 	EditSecret(creds *models.Secret) error
 	// Returns a list of users secret data.
@@ -54,7 +54,7 @@ func CreateTables(ctx context.Context, db *pgxpool.Pool) error {
 
 	query = `
     CREATE TABLE IF NOT EXISTS secrets (
-			uuid UUID PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			user_id UUID NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
 			data TEXT NOT NULL,
 			meta TEXT
@@ -117,20 +117,21 @@ func (store *DBStore) GetUser(username string) (models.User, error) {
 }
 
 // AddSecret saves users credentials to the database.
-func (store *DBStore) AddSecret(cred *models.Secret) error {
-	query := `INSERT INTO secrets (uuid, user_id, data, meta) VALUES ($1, $2, $3, $4)`
-	_, err := store.db.Exec(context.Background(), query, cred.ID, cred.UserID, cred.Data, cred.Meta)
+func (store *DBStore) AddSecret(cred *models.Secret) (int64, error) {
+	query := `INSERT INTO secrets (user_id, data, meta) VALUES ($1, $2, $3) RETURNING id`
+	var id int64
+	err := store.db.QueryRow(context.Background(), query, cred.UserID, cred.Data, cred.Meta).Scan(&id)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
 // EditSecret updates users credentials in the database.
 func (store *DBStore) EditSecret(cred *models.Secret) error {
-	query := `UPDATE secrets SET data = $1, meta = $2 WHERE uuid = $3`
+	query := `UPDATE secrets SET data = $1, meta = $2 WHERE id = $3`
 	_, err := store.db.Exec(context.Background(), query, cred.Data, cred.Meta, cred.ID)
 
 	if err != nil {
@@ -142,7 +143,7 @@ func (store *DBStore) EditSecret(cred *models.Secret) error {
 
 // GetSecret retrives and returns all users credentials.
 func (store *DBStore) GetSecret(userID string) ([]models.Secret, error) {
-	query := `SELECT uuid, user_id, data, meta FROM secrets WHERE user_id=$1`
+	query := `SELECT id, user_id, data, meta FROM secrets WHERE user_id=$1`
 	rows, err := store.db.Query(context.Background(), query, userID)
 
 	if err != nil {

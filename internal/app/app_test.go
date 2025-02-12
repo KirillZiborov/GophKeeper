@@ -2,7 +2,6 @@ package app_test
 
 import (
 	"context"
-	"strconv"
 	"testing"
 	"time"
 
@@ -39,7 +38,7 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	}
 
 	// Register test.
-	username := "integrationUser"
+	username := "testUser"
 	password := "securePassword"
 	token, err := svc.Register(ctx, username, password)
 	assert.NoError(t, err, "Registration should succeed")
@@ -69,12 +68,9 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	// EditSecret test.
 	// Use the first found record from storage.
 	credID := creds[0].ID
-	if credID == "" {
-		credID = strconv.Itoa(1) // Use ID = 1 if not set.
-	}
 	newData := "updated_encrypted_data"
 	newMeta := "updated metadata"
-	err = svc.EditSecret(ctx, token, credID, newData, newMeta)
+	err = svc.EditSecret(ctx, credID, token, newData, newMeta)
 	assert.NoError(t, err, "EditSecret should succeed")
 
 	// Check that the secret is updated successfully.

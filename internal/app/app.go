@@ -74,19 +74,18 @@ func (ks *KeeperService) Login(ctx context.Context, username, password string) (
 
 // AddSecret adds secret data to user's list of credentials.
 // Parameter token is a JWT which is used for etracting userID.
-func (ks *KeeperService) AddSecret(ctx context.Context, userID, data, meta string) (string, error) {
+func (ks *KeeperService) AddSecret(ctx context.Context, userID, data, meta string) (int64, error) {
 	creds := &models.Secret{
-		ID:     uuid.New().String(),
 		Data:   data,
 		Meta:   meta,
 		UserID: userID,
 	}
 
-	return creds.ID, ks.Store.AddSecret(creds)
+	return ks.Store.AddSecret(creds)
 }
 
 // EditSecret updates secret data using its id.
-func (ks *KeeperService) EditSecret(ctx context.Context, userID, id, data, meta string) error {
+func (ks *KeeperService) EditSecret(ctx context.Context, id int64, userID, data, meta string) error {
 	creds := &models.Secret{
 		ID:     id,
 		Data:   data,
