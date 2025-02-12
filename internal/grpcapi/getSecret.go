@@ -24,11 +24,14 @@ func (s *GophKeeperServer) GetSecret(ctx context.Context, req *proto.GetSecretRe
 	}
 
 	// Prepare response.
-	var protoCreds []*proto.Secret
+	var protoCreds []*proto.CountedSecret
 	for _, c := range credsList {
-		protoCreds = append(protoCreds, &proto.Secret{
-			Data: c.Data,
-			Meta: c.Meta,
+		protoCreds = append(protoCreds, &proto.CountedSecret{
+			Id: c.ID,
+			Secret: &proto.Secret{
+				Data: c.Data,
+				Meta: c.Meta,
+			},
 		})
 	}
 

@@ -33,10 +33,7 @@ var secretCreateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		secretType := args[0] // secret type: card, credentials, text, bin.
-		name, _ := cmd.Flags().GetString("name")
-		if name == "" {
-			logging.Sugar.Fatal("Name must be provided")
-		}
+		note, _ := cmd.Flags().GetString("note")
 
 		var rawData string
 		switch secretType {
@@ -45,21 +42,21 @@ var secretCreateCmd = &cobra.Command{
 			date, _ := cmd.Flags().GetString("date")
 			holder, _ := cmd.Flags().GetString("holder")
 			code, _ := cmd.Flags().GetString("code")
-			rawData = fmt.Sprintf("name:%s;number:%s;date:%s;holder:%s;code:%s", name, number, date, holder, code)
+			rawData = fmt.Sprintf("number:%s;date:%s;holder:%s;code:%s", number, date, holder, code)
 		case "credentials":
 			login, _ := cmd.Flags().GetString("login")
 			password, _ := cmd.Flags().GetString("password")
-			rawData = fmt.Sprintf("name:%s;login:%s;password:%s", name, login, password)
+			rawData = fmt.Sprintf("login:%s;password:%s", login, password)
 		case "text":
-			data, _ := cmd.Flags().GetString("data")
-			rawData = fmt.Sprintf("name:%s;data:%s", name, data)
+			data, _ := cmd.Flags().GetString("text")
+			rawData = fmt.Sprintf("text:%s", data)
 		case "bin":
 			filePath, _ := cmd.Flags().GetString("file")
 			content, err := os.ReadFile(filePath)
 			if err != nil {
 				logging.Sugar.Fatalf("Failed to read file: %v", err)
 			}
-			rawData = fmt.Sprintf("name:%s;bin:%x", name, content)
+			rawData = fmt.Sprintf("bin:%x", content)
 		default:
 			logging.Sugar.Fatalf("Unknown secret type: %s", secretType)
 		}
@@ -73,6 +70,12 @@ var secretCreateCmd = &cobra.Command{
 		encryptedData, err := encryption.EncryptWithKey(rawData, encryptionKey)
 		if err != nil {
 			logging.Sugar.Fatalf("Failed to encrypt data: %v", err)
+		}
+
+		// Encrypt metadata using encryptionKey.
+		encryptedMeta, err := encryption.EncryptWithKey(note, encryptionKey)
+		if err != nil {
+			logging.Sugar.Fatalf("Failed to encrypt metadata: %v", err)
 		}
 
 		// Read token from file (token.txt).
@@ -97,7 +100,7 @@ var secretCreateCmd = &cobra.Command{
 
 		secretData := &proto.Secret{
 			Data: encryptedData,
-			Meta: name,
+			Meta: encryptedMeta,
 		}
 
 		req := &proto.AddSecretRequest{
@@ -123,8 +126,7 @@ func init() {
 	secretCmd.AddCommand(secretCreateCmd)
 
 	// Flags for all types.
-	secretCreateCmd.Flags().StringP("name", "n", "", "Name for the secret")
-	secretCreateCmd.MarkFlagRequired("name")
+	secretCreateCmd.Flags().StringP("note", "n", "", "Optional note for the secret")
 
 	// Type card.
 	secretCreateCmd.Flags().String("number", "", "Card number")
@@ -137,7 +139,7 @@ func init() {
 	secretCreateCmd.Flags().String("password", "", "Password for credentials")
 
 	// Type text.
-	secretCreateCmd.Flags().String("data", "", "Text data")
+	secretCreateCmd.Flags().String("text", "", "Text data")
 
 	// Type bin.
 	secretCreateCmd.Flags().StringP("file", "f", "", "File path for binary data")

@@ -20,7 +20,7 @@ import (
 
 // DecryptedSecret is a structure for outputing user's saved secrets.
 type DecryptedSecret struct {
-	Id   string `json:"id"`
+	Id   int64  `json:"id"`
 	Data string `json:"data"`
 	Meta string `json:"meta"`
 }
@@ -72,16 +72,23 @@ var secretAllCmd = &cobra.Command{
 		var secrets []DecryptedSecret
 
 		for _, cred := range resp.Secret {
-			encryptedStr := cred.Data
-			plainText, err := encryption.DecryptWithKey(encryptedStr, encryptionKey)
+			encryptedData := cred.Secret.Data
+			encryptedMeta := cred.Secret.Meta
+			data, err := encryption.DecryptWithKey(encryptedData, encryptionKey)
 			if err != nil {
-				logging.Sugar.Errorf("Failed to decrypt secret (meta: %v): %v", cred.Meta, err)
+				logging.Sugar.Errorf("Failed to decrypt secret (id: %d): %v", cred.Id, err)
+				continue
+			}
+			meta, err := encryption.DecryptWithKey(encryptedMeta, encryptionKey)
+			if err != nil {
+				logging.Sugar.Errorf("Failed to decrypt secret (id: %d): %v", cred.Id, err)
 				continue
 			}
 
 			secret := DecryptedSecret{
-				Data: plainText,
-				Meta: cred.Meta,
+				Id:   cred.Id,
+				Data: data,
+				Meta: meta,
 			}
 			secrets = append(secrets, secret)
 		}

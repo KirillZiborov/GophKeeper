@@ -32,10 +32,7 @@ var secretUpdateCmd = &cobra.Command{
 			logging.Sugar.Fatal("Secret id (--id) must be provided")
 		}
 
-		name, err := cmd.Flags().GetString("name")
-		if err != nil || name == "" {
-			logging.Sugar.Fatal("Name must be provided")
-		}
+		note, _ := cmd.Flags().GetString("note")
 
 		var rawData string
 		switch secretType {
@@ -44,21 +41,21 @@ var secretUpdateCmd = &cobra.Command{
 			date, _ := cmd.Flags().GetString("date")
 			holder, _ := cmd.Flags().GetString("holder")
 			code, _ := cmd.Flags().GetString("code")
-			rawData = fmt.Sprintf("name:%s;number:%s;date:%s;holder:%s;code:%s", name, number, date, holder, code)
+			rawData = fmt.Sprintf("number:%s;date:%s;holder:%s;code:%s", number, date, holder, code)
 		case "credentials":
 			login, _ := cmd.Flags().GetString("login")
 			pass, _ := cmd.Flags().GetString("password")
-			rawData = fmt.Sprintf("name:%s;login:%s;password:%s", name, login, pass)
+			rawData = fmt.Sprintf("login:%s;password:%s", login, pass)
 		case "text":
 			data, _ := cmd.Flags().GetString("data")
-			rawData = fmt.Sprintf("name:%s;data:%s", name, data)
+			rawData = fmt.Sprintf("data:%s", data)
 		case "bin":
 			filePath, _ := cmd.Flags().GetString("file")
 			content, err := os.ReadFile(filePath)
 			if err != nil {
 				logging.Sugar.Fatalf("Failed to read file: %v", err)
 			}
-			rawData = fmt.Sprintf("name:%s;bin:%x", name, content)
+			rawData = fmt.Sprintf("bin:%x", content)
 		default:
 			logging.Sugar.Fatalf("Unknown secret type: %s", secretType)
 		}
@@ -72,6 +69,12 @@ var secretUpdateCmd = &cobra.Command{
 		encryptedData, err := encryption.EncryptWithKey(rawData, encryptionKey)
 		if err != nil {
 			logging.Sugar.Fatalf("Failed to encrypt data: %v", err)
+		}
+
+		// Encrypt metadata using encryptionKey.
+		encryptedMeta, err := encryption.EncryptWithKey(note, encryptionKey)
+		if err != nil {
+			logging.Sugar.Fatalf("Failed to encrypt metadata: %v", err)
 		}
 
 		// Read token from file (token.txt).
@@ -102,7 +105,7 @@ var secretUpdateCmd = &cobra.Command{
 			Id: id,
 			Secret: &proto.Secret{
 				Data: encryptedData,
-				Meta: name,
+				Meta: encryptedMeta,
 			},
 		}
 
@@ -127,8 +130,7 @@ func init() {
 	secretUpdateCmd.Flags().StringP("id", "i", "", "Secret identifier (id) to update")
 	secretUpdateCmd.MarkFlagRequired("id")
 
-	secretUpdateCmd.Flags().StringP("name", "n", "", "Name for the secret")
-	secretUpdateCmd.MarkFlagRequired("name")
+	secretUpdateCmd.Flags().StringP("note", "n", "", "Optional note for the secret")
 
 	// Type card.
 	secretUpdateCmd.Flags().String("number", "", "Card number")

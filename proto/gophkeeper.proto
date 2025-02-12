@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package proto;
 
-option go_package = "internal/grpcapi/proto";
+option go_package = ".";
 
 message User {
   string username = 1;
@@ -44,8 +44,13 @@ message EditSecretResponse {}
 
 message GetSecretRequest {}
 
+message CountedSecret {
+   int64 id = 1;
+   Secret Secret = 2; 
+}
+
 message GetSecretResponse {
-  repeated Secret Secret = 1;
+  repeated CountedSecret Secret = 1;
 }
 
 service Keeper {
