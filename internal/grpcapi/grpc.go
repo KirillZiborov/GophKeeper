@@ -1,11 +1,11 @@
-// Package grpcapi provides functionality for handling gRPC communication with the URL shortener service.
+// Package grpcapi provides functionality for handling gRPC communication with the GophKeeper service.
 // It includes interfaces and structs for defining gRPC services and servers, as well as methods
-// for interacting with the URL shortener service.
+// for interacting with the GophKeeper service.
 package grpcapi
 
 import (
 	"github.com/KirillZiborov/GophKeeper/internal/app"
-	"github.com/KirillZiborov/GophKeeper/internal/grpcapi/proto"
+	"github.com/KirillZiborov/GophKeeper/proto"
 )
 
 // GophKeeperServer supports all neccessary server methods.
