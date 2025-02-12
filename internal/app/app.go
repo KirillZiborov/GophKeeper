@@ -44,7 +44,7 @@ func (ks *KeeperService) Register(ctx context.Context, username, password string
 	}
 
 	// Generates token for a new user.
-	token, err := auth.GenerateToken(username)
+	token, err := auth.GenerateToken(userUuid)
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +64,7 @@ func (ks *KeeperService) Login(ctx context.Context, username, password string) (
 	}
 
 	// Generates token for user.
-	token, err := auth.GenerateToken(username)
+	token, err := auth.GenerateToken(user.ID)
 	if err != nil {
 		return "", err
 	}
@@ -74,13 +74,7 @@ func (ks *KeeperService) Login(ctx context.Context, username, password string) (
 
 // AddSecret adds secret data to user's list of credentials.
 // Parameter token is a JWT which is used for etracting userID.
-func (ks *KeeperService) AddSecret(ctx context.Context, token, data, meta string) error {
-	// Extract userID from JWT using auth.GetUserID.
-	userID := auth.GetUserID(token)
-	if userID == "" {
-		return errors.New("invalid token")
-	}
-
+func (ks *KeeperService) AddSecret(ctx context.Context, userID, data, meta string) (string, error) {
 	creds := &models.Secret{
 		ID:     uuid.New().String(),
 		Data:   data,
@@ -88,16 +82,11 @@ func (ks *KeeperService) AddSecret(ctx context.Context, token, data, meta string
 		UserID: userID,
 	}
 
-	return ks.Store.AddSecret(creds)
+	return creds.ID, ks.Store.AddSecret(creds)
 }
 
 // EditSecret updates secret data using its id.
-func (ks *KeeperService) EditSecret(ctx context.Context, token, id, data, meta string) error {
-	userID := auth.GetUserID(token)
-	if userID == "" {
-		return errors.New("invalid token")
-	}
-
+func (ks *KeeperService) EditSecret(ctx context.Context, userID, id, data, meta string) error {
 	creds := &models.Secret{
 		ID:     id,
 		Data:   data,
@@ -110,13 +99,7 @@ func (ks *KeeperService) EditSecret(ctx context.Context, token, id, data, meta s
 
 // GetSecret retrieves all user's credentials.
 // Parameter token is a JWT which is used for etracting userID.
-func (ks *KeeperService) GetSecret(ctx context.Context, token string) ([]models.Secret, error) {
-	// Extract userID from JWT using auth.GetUserID.
-	userID := auth.GetUserID(token)
-	if userID == "" {
-		return nil, errors.New("invalid token")
-	}
-
+func (ks *KeeperService) GetSecret(ctx context.Context, userID string) ([]models.Secret, error) {
 	// Retrieve all user's secrets from storage.
 	creds, err := ks.Store.GetSecret(userID)
 	if err != nil {

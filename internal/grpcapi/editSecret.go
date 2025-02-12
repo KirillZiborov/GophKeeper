@@ -11,6 +11,7 @@ import (
 
 // EditSecret is the gRPC method for updating secret data by id for an authentificated user.
 func (s *GophKeeperServer) EditSecret(ctx context.Context, req *proto.EditSecretRequest) (*proto.EditSecretResponse, error) {
+	// Extract userID from context set by interceptor.
 	userID, ok := interceptors.GetUserIDFromContext(ctx)
 	if !ok || userID == "" {
 		return nil, status.Error(codes.Unauthenticated, "unauthenticated: no valid token")
@@ -27,7 +28,7 @@ func (s *GophKeeperServer) EditSecret(ctx context.Context, req *proto.EditSecret
 	}
 
 	// Call to business logic.
-	err := s.svc.EditSecret(ctx, "", id, creds.Data, creds.Meta)
+	err := s.svc.EditSecret(ctx, userID, id, creds.Data, creds.Meta)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to edit Secret: %v", err)
 	}

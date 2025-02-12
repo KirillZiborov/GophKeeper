@@ -82,13 +82,6 @@ var registerCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(registerCmd)
 
-	registerCmd.Flags().StringP("username", "u", "", "User Email")
-	if err := registerCmd.MarkFlagRequired("username"); err != nil {
-		logging.Sugar.Error(err)
-	}
-
-	registerCmd.Flags().StringP("password", "p", "", "User password")
-	if err := registerCmd.MarkFlagRequired("password"); err != nil {
-		logging.Sugar.Error(err)
-	}
+	rootCmd.PersistentFlags().StringP("username", "u", "", "User Email/Login")
+	rootCmd.PersistentFlags().StringP("password", "p", "", "User password")
 }

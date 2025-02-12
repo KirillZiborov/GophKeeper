@@ -58,7 +58,7 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	// AddSecret test.
 	data := "encrypted_data_example"
 	meta := "some metadata"
-	err = svc.AddSecret(ctx, token, data, meta)
+	_, err = svc.AddSecret(ctx, token, data, meta)
 	assert.NoError(t, err, "AddSecret should succeed")
 
 	// Get credentials and check that it is saved in the database.

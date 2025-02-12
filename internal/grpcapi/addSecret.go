@@ -24,10 +24,10 @@ func (s *GophKeeperServer) AddSecret(ctx context.Context, req *proto.AddSecretRe
 	}
 
 	// Call to business logic.
-	err := s.svc.AddSecret(ctx, "", creds.Data, creds.Meta)
+	id, err := s.svc.AddSecret(ctx, userID, creds.Data, creds.Meta)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add Secret: %v", err)
 	}
 
-	return &proto.AddSecretResponse{}, nil
+	return &proto.AddSecretResponse{Id: id}, nil
 }

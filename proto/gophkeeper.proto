@@ -31,7 +31,9 @@ message AddSecretRequest {
   Secret Secret = 1;
 }
 
-message AddSecretResponse {}
+message AddSecretResponse {
+  string Id = 1;
+}
 
 message EditSecretRequest {
   string id = 1;
@@ -40,9 +42,7 @@ message EditSecretRequest {
 
 message EditSecretResponse {}
 
-message GetSecretRequest {
-  string id = 1;
-}
+message GetSecretRequest {}
 
 message GetSecretResponse {
   repeated Secret Secret = 1;
