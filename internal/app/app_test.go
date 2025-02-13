@@ -28,8 +28,8 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	store := storage.NewDBStore(pool)
 
 	cfg := &config.Config{
-		GRPCAddress: "http://localhost:8080",
-		DBPath:      dsn,
+		Server:  config.ServerConfig{Address: "http://localhost:8080"},
+		Storage: config.StorageConfig{ConnectionString: dsn},
 	}
 
 	svc := &app.KeeperService{

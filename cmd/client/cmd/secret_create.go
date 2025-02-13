@@ -108,7 +108,7 @@ var secretCreateCmd = &cobra.Command{
 		}
 
 		// Create context with token in metadata.
-		md := metadata.Pairs("cookie", token)
+		md := metadata.Pairs("token", token)
 		ctx, cancel := context.WithTimeout(metadata.NewOutgoingContext(context.Background(), md), 5*time.Second)
 		defer cancel()
 

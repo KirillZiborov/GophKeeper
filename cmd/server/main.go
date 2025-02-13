@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/KirillZiborov/GophKeeper/internal/app"
+	"github.com/KirillZiborov/GophKeeper/internal/auth"
 	"github.com/KirillZiborov/GophKeeper/internal/config"
 	"github.com/KirillZiborov/GophKeeper/internal/grpcapi"
-	"github.com/KirillZiborov/GophKeeper/internal/grpcapi/interceptors"
 	"github.com/KirillZiborov/GophKeeper/internal/logging"
 	"github.com/KirillZiborov/GophKeeper/internal/storage"
 	"github.com/KirillZiborov/GophKeeper/proto"
@@ -49,15 +49,19 @@ func main() {
 	}
 
 	// Load the configuration.
-	cfg := config.NewConfig()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		logging.Sugar.Fatalf("Failed to load configuration: %v", err)
+	}
+	logging.Sugar.Infow("Loaded config", "server_address", cfg.Server.Address, "db", cfg.Storage.ConnectionString)
 
 	// Initialize storage based on the configuration.
-	if cfg.DBPath != "" {
+	if cfg.Storage.ConnectionString != "" {
 		// Establish a connection to the PostgreSQL database with a timeout.
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		db, err = pgxpool.New(ctx, cfg.DBPath)
+		db, err = pgxpool.New(ctx, cfg.Storage.ConnectionString)
 		if err != nil {
 			logging.Sugar.Errorw("Unable to connect to database", "error", err)
 			return
@@ -83,15 +87,17 @@ func main() {
 		Cfg:   cfg,
 	}
 
+	auth.SetTokenConfig(cfg.Security.JWTKey, cfg.Security.ExpirationTime)
+
 	// Start the gRPC server.
-	lis, err := net.Listen("tcp", cfg.GRPCAddress)
+	lis, err := net.Listen("tcp", cfg.Server.Address)
 	if err != nil {
 		logging.Sugar.Fatalw("Failed to listen on gRPC address", "error", err)
 	}
 
 	grpcServer := grpc.NewServer(
 		// Add authentificatrion interceptor.
-		grpc.ChainUnaryInterceptor(interceptors.AuthInterceptor()),
+		grpc.ChainUnaryInterceptor(auth.AuthInterceptor()),
 	)
 	// Register the gRPC service.
 	proto.RegisterKeeperServer(grpcServer, grpcapi.NewGRPCKeeperServer(&service))
@@ -100,7 +106,7 @@ func main() {
 
 	// Start gRPC server in goroutine.
 	go func() {
-		logging.Sugar.Infow("Starting gRPC server", "address", cfg.GRPCAddress)
+		logging.Sugar.Infow("Starting gRPC server", "address", cfg.Server.Address)
 		if err := grpcServer.Serve(lis); err != nil {
 			logging.Sugar.Errorw("gRPC server exited with error", "error", err)
 			return

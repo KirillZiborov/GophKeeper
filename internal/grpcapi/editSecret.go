@@ -3,7 +3,7 @@ package grpcapi
 import (
 	"context"
 
-	"github.com/KirillZiborov/GophKeeper/internal/grpcapi/interceptors"
+	"github.com/KirillZiborov/GophKeeper/internal/auth"
 	"github.com/KirillZiborov/GophKeeper/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,7 +12,7 @@ import (
 // EditSecret is the gRPC method for updating secret data by id for an authentificated user.
 func (s *GophKeeperServer) EditSecret(ctx context.Context, req *proto.EditSecretRequest) (*proto.EditSecretResponse, error) {
 	// Extract userID from context set by interceptor.
-	userID, ok := interceptors.GetUserIDFromContext(ctx)
+	userID, ok := auth.GetUserIDFromContext(ctx)
 	if !ok || userID == "" {
 		return nil, status.Error(codes.Unauthenticated, "unauthenticated: no valid token")
 	}
