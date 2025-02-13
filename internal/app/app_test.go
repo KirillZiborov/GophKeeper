@@ -77,7 +77,7 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	assert.NoError(t, err, "AddSecret should succeed")
 
 	// Get credentials and check that it is saved in the database.
-	creds, err := svc.GetSecret(ctx, userID)
+	creds, err := svc.GetSecrets(ctx, userID)
 	assert.NoError(t, err, "GetSecret should succeed")
 	assert.GreaterOrEqual(t, len(creds), 1, "There should be at least one Secret")
 
@@ -90,7 +90,7 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	assert.NoError(t, err, "EditSecret should succeed")
 
 	// Check that the secret is updated successfully.
-	creds, err = svc.GetSecret(ctx, userID)
+	creds, err = svc.GetSecrets(ctx, userID)
 	assert.NoError(t, err, "GetSecret after edit should succeed")
 	assert.GreaterOrEqual(t, len(creds), 1, "There should be at least one Secret")
 	assert.Equal(t, newData, creds[0].Data, "Secret data should be updated")

@@ -9,6 +9,7 @@ import (
 	"github.com/KirillZiborov/GophKeeper/internal/app"
 	"github.com/KirillZiborov/GophKeeper/internal/auth"
 	"github.com/KirillZiborov/GophKeeper/internal/grpcapi"
+	"github.com/KirillZiborov/GophKeeper/internal/models"
 	"github.com/KirillZiborov/GophKeeper/internal/storage"
 	"github.com/KirillZiborov/GophKeeper/proto"
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/resolver"
+	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 )
 
@@ -177,4 +179,88 @@ func TestSecretCRUDGRPC(t *testing.T) {
 	require.NotNil(t, found, "Secret with given id not found")
 	require.Equal(t, "updated note", found.Secret.Meta, "Secret meta should be updated")
 	require.Equal(t, "updatedEncryptedData", found.Secret.Data, "Secret data should be updated")
+}
+
+func TestUpdateNotMySecret(t *testing.T) {
+	fakeStore := storage.NewFakeStorage()
+
+	svc := app.KeeperService{
+		Store: fakeStore,
+	}
+
+	auth.SetTokenConfig("test-secret", "2h")
+
+	lis = bufconn.Listen(bufSize)
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(auth.AuthInterceptor()))
+	proto.RegisterKeeperServer(grpcServer, grpcapi.NewGRPCKeeperServer(&svc))
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			t.Errorf("gRPC server exited with error")
+		}
+	}()
+	defer grpcServer.GracefulStop()
+
+	resolver.SetDefaultScheme("passthrough")
+	conn, err := grpc.NewClient(
+		"bufnet", grpc.WithContextDialer(bufDialer),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	defer conn.Close()
+
+	client := proto.NewKeeperClient(conn)
+
+	user1 := &models.User{
+		ID:       "user1",
+		Username: "user1",
+		Password: "password",
+	}
+	user2 := &models.User{
+		ID:       "user2",
+		Username: "user2",
+		Password: "password",
+	}
+
+	err = fakeStore.RegisterUser(user1)
+	require.NoError(t, err)
+	err = fakeStore.RegisterUser(user2)
+	require.NoError(t, err)
+
+	tokenUser1, err := auth.GenerateToken(user1.ID)
+	require.NoError(t, err)
+	tokenUser2, err := auth.GenerateToken(user2.ID)
+	require.NoError(t, err)
+
+	mdUser1 := metadata.Pairs("token", tokenUser1)
+	ctxUser1 := metadata.NewOutgoingContext(context.Background(), mdUser1)
+
+	// user1 creates secret.
+	secretData := &proto.Secret{
+		Data: "encryptedData",
+		Meta: "encryptedMeta",
+	}
+
+	addReq := &proto.AddSecretRequest{
+		Secret: secretData,
+	}
+
+	addResp, err := client.AddSecret(ctxUser1, addReq)
+	require.NoError(t, err)
+	require.NotEmpty(t, addResp.Id, "Expected non-empty secret id from CreateData")
+	secretID := addResp.Id
+
+	mdUser2 := metadata.Pairs("token", tokenUser2)
+	ctxUser2 := metadata.NewOutgoingContext(context.Background(), mdUser2)
+
+	// user2 try to update user1 secret.
+	updateReq := &proto.EditSecretRequest{
+		Id: secretID,
+		Secret: &proto.Secret{
+			Data: "updatedEncryptedData",
+			Meta: "updated note",
+		},
+	}
+	_, err = client.EditSecret(ctxUser2, updateReq)
+	require.Error(t, err, "Expected error when updating secret not belonging to the user")
+	_, ok := status.FromError(err)
+	require.True(t, ok, "Expected gRPC status error")
 }

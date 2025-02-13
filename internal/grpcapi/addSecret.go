@@ -18,13 +18,13 @@ func (s *GophKeeperServer) AddSecret(ctx context.Context, req *proto.AddSecretRe
 		return nil, status.Error(codes.Unauthenticated, "unauthenticated: no valid token")
 	}
 
-	creds := req.GetSecret()
-	if creds == nil || creds.Data == "" {
+	secret := req.GetSecret()
+	if secret == nil || secret.Data == "" {
 		return nil, status.Error(codes.InvalidArgument, "Secret data must be provided")
 	}
 
 	// Call to business logic.
-	id, err := s.svc.AddSecret(ctx, userID, creds.Data, creds.Meta)
+	id, err := s.svc.AddSecret(ctx, userID, secret.Data, secret.Meta)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add Secret: %v", err)
 	}

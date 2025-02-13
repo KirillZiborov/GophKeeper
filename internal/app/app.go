@@ -14,6 +14,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// ErrUserNotFound is login error.
+var ErrUserNotFound = errors.New("invalid username or password")
+
+// ErrAccessDenied is returned when user try to approach not his secret.
+var ErrAccessDenied = errors.New("access denied: secret doesn't belong to user")
+
 // KeeperService is a facade of GophKeeper business logic.
 type KeeperService struct {
 	Store storage.Storage // Using database storage.
@@ -60,7 +66,7 @@ func (ks *KeeperService) Login(ctx context.Context, username, password string) (
 	}
 
 	if err := encryption.CheckPasswordHash(password, user.Password); err != nil {
-		return "", errors.New("invalid username or password")
+		return "", ErrUserNotFound
 	}
 
 	// Generates token for user.
@@ -86,21 +92,26 @@ func (ks *KeeperService) AddSecret(ctx context.Context, userID, data, meta strin
 
 // EditSecret updates secret data using its id.
 func (ks *KeeperService) EditSecret(ctx context.Context, id int64, userID, data, meta string) error {
-	creds := &models.Secret{
-		ID:     id,
-		Data:   data,
-		Meta:   meta,
-		UserID: userID,
+	secret, err := ks.Store.GetSecretByID(id)
+	if err != nil {
+		return err
 	}
 
-	return ks.Store.EditSecret(creds)
+	if secret.UserID != userID {
+		return ErrAccessDenied
+	}
+
+	secret.Data = data
+	secret.Meta = meta
+
+	return ks.Store.EditSecret(secret)
 }
 
 // GetSecret retrieves all user's credentials.
 // Parameter token is a JWT which is used for etracting userID.
-func (ks *KeeperService) GetSecret(ctx context.Context, userID string) ([]models.Secret, error) {
+func (ks *KeeperService) GetSecrets(ctx context.Context, userID string) ([]models.Secret, error) {
 	// Retrieve all user's secrets from storage.
-	creds, err := ks.Store.GetSecret(userID)
+	creds, err := ks.Store.GetSecrets(userID)
 	if err != nil {
 		return nil, err
 	}

@@ -19,13 +19,13 @@ func (s *GophKeeperServer) EditSecret(ctx context.Context, req *proto.EditSecret
 
 	id := req.GetId()
 
-	creds := req.GetSecret()
-	if creds == nil || creds.Data == "" {
+	secret := req.GetSecret()
+	if secret == nil || secret.Data == "" {
 		return nil, status.Error(codes.InvalidArgument, "Secret data must be provided")
 	}
 
 	// Call to business logic.
-	err := s.svc.EditSecret(ctx, id, userID, creds.Data, creds.Meta)
+	err := s.svc.EditSecret(ctx, id, userID, secret.Data, secret.Meta)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to edit Secret: %v", err)
 	}

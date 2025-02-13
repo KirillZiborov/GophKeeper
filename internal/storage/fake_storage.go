@@ -87,7 +87,7 @@ func (fs *FakeStorage) EditSecret(secret *models.Secret) error {
 }
 
 // GetSecret retrives and returns all users credentials.
-func (fs *FakeStorage) GetSecret(userID string) ([]models.Secret, error) {
+func (fs *FakeStorage) GetSecrets(userID string) ([]models.Secret, error) {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
@@ -100,4 +100,18 @@ func (fs *FakeStorage) GetSecret(userID string) ([]models.Secret, error) {
 		secrets = append(secrets, *secret)
 	}
 	return secrets, nil
+}
+
+// GetSecretByID возвращает секрет по его id.
+func (fs *FakeStorage) GetSecretByID(secretID int64) (*models.Secret, error) {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
+	// Перебираем все секреты всех пользователей.
+	for _, userSecrets := range fs.secrets {
+		if secret, ok := userSecrets[secretID]; ok {
+			return secret, nil
+		}
+	}
+	return nil, errors.New("secret not found")
 }

@@ -24,11 +24,13 @@ type Storage interface {
 	// Authentificate user by his username and password. Returns User structure.
 	GetUser(username string) (models.User, error)
 	// Add new secret data for user with userID.
-	AddSecret(cred *models.Secret) (int64, error)
+	AddSecret(secret *models.Secret) (int64, error)
 	// Edit an existing secret data by his ID.
-	EditSecret(creds *models.Secret) error
+	EditSecret(secret *models.Secret) error
 	// Returns a list of users secret data.
-	GetSecret(userID string) ([]models.Secret, error)
+	GetSecrets(userID string) ([]models.Secret, error)
+	// Returns a secret by its ID.
+	GetSecretByID(secretID int64) (*models.Secret, error)
 }
 
 // CreateURLTable initializes the 'users' table in the PostgreSQL database if it does not already exist
@@ -116,11 +118,11 @@ func (store *DBStore) GetUser(username string) (models.User, error) {
 	return user, nil
 }
 
-// AddSecret saves users credentials to the database.
-func (store *DBStore) AddSecret(cred *models.Secret) (int64, error) {
+// AddSecret saves users secret to the database.
+func (store *DBStore) AddSecret(secret *models.Secret) (int64, error) {
 	query := `INSERT INTO secrets (user_id, data, meta) VALUES ($1, $2, $3) RETURNING id`
 	var id int64
-	err := store.db.QueryRow(context.Background(), query, cred.UserID, cred.Data, cred.Meta).Scan(&id)
+	err := store.db.QueryRow(context.Background(), query, secret.UserID, secret.Data, secret.Meta).Scan(&id)
 
 	if err != nil {
 		return 0, err
@@ -129,10 +131,10 @@ func (store *DBStore) AddSecret(cred *models.Secret) (int64, error) {
 	return id, nil
 }
 
-// EditSecret updates users credentials in the database.
-func (store *DBStore) EditSecret(cred *models.Secret) error {
+// EditSecret updates users secret in the database.
+func (store *DBStore) EditSecret(secret *models.Secret) error {
 	query := `UPDATE secrets SET data = $1, meta = $2 WHERE id = $3`
-	_, err := store.db.Exec(context.Background(), query, cred.Data, cred.Meta, cred.ID)
+	_, err := store.db.Exec(context.Background(), query, secret.Data, secret.Meta, secret.ID)
 
 	if err != nil {
 		return err
@@ -141,8 +143,18 @@ func (store *DBStore) EditSecret(cred *models.Secret) error {
 	return nil
 }
 
+func (store *DBStore) GetSecretByID(secretID int64) (*models.Secret, error) {
+	query := "SELECT id, user_id, data, meta FROM secrets WHERE id = $1"
+	var secret models.Secret
+	err := store.db.QueryRow(context.Background(), query, secretID).Scan(&secret.ID, &secret.UserID, &secret.Data, &secret.Meta)
+	if err != nil {
+		return nil, err
+	}
+	return &secret, nil
+}
+
 // GetSecret retrives and returns all users credentials.
-func (store *DBStore) GetSecret(userID string) ([]models.Secret, error) {
+func (store *DBStore) GetSecrets(userID string) ([]models.Secret, error) {
 	query := `SELECT id, user_id, data, meta FROM secrets WHERE user_id=$1`
 	rows, err := store.db.Query(context.Background(), query, userID)
 

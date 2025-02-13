@@ -18,7 +18,7 @@ func (s *GophKeeperServer) GetSecret(ctx context.Context, req *proto.GetSecretRe
 	}
 
 	// Call to business logic.
-	credsList, err := s.svc.GetSecret(ctx, userID)
+	credsList, err := s.svc.GetSecrets(ctx, userID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get Secret: %v", err)
 	}
