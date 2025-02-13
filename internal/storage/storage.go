@@ -77,7 +77,7 @@ func NewDBStore(db *pgxpool.Pool) *DBStore {
 	return &DBStore{db: db}
 }
 
-// CreateUser adds a new user to th database.
+// RegisterUser adds a new user to the database.
 func (store *DBStore) RegisterUser(user *models.User) error {
 	var exists bool
 	query := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)`

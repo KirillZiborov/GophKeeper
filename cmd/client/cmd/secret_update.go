@@ -47,8 +47,8 @@ var secretUpdateCmd = &cobra.Command{
 			pass, _ := cmd.Flags().GetString("password")
 			rawData = fmt.Sprintf("login:%s;password:%s", login, pass)
 		case "text":
-			data, _ := cmd.Flags().GetString("data")
-			rawData = fmt.Sprintf("data:%s", data)
+			data, _ := cmd.Flags().GetString("text")
+			rawData = fmt.Sprintf("text:%s", data)
 		case "bin":
 			filePath, _ := cmd.Flags().GetString("file")
 			content, err := os.ReadFile(filePath)
@@ -143,7 +143,7 @@ func init() {
 	secretUpdateCmd.Flags().String("password", "", "Password for credentials")
 
 	// Type text.
-	secretUpdateCmd.Flags().String("data", "", "Text data")
+	secretUpdateCmd.Flags().String("text", "", "Text data")
 
 	// Type bin.
 	secretUpdateCmd.Flags().StringP("file", "f", "", "File path for binary data")
