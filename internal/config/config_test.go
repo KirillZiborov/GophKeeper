@@ -31,6 +31,22 @@ func TestConfig_ENVVarsOnly(t *testing.T) {
 	os.Unsetenv("GOPHKEEPER_SECURITY_EXPIRATION_TIME")
 }
 
+func TestConfig_DefaultValues(t *testing.T) {
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	os.Unsetenv("GOPHKEEPER_SERVER_ADDRESS")
+	os.Unsetenv("GOPHKEEPER_STORAGE_CONNECTION_STRING")
+	os.Unsetenv("GOPHKEEPER_SECURITY_JWT_KEY")
+	os.Unsetenv("GOPHKEEPER_SECURITY_EXPIRATION_TIME")
+
+	cfg, err := config.NewConfig()
+	require.NoError(t, err)
+
+	assert.Equal(t, "localhost:8080", cfg.Server.Address)
+	assert.Equal(t, "postgres://gophkeeper:1234@localhost:5432/gophkeeper?sslmode=disable", cfg.Storage.ConnectionString)
+	assert.Equal(t, "supersecretkey", cfg.Security.JWTKey)
+	assert.Equal(t, "3h", cfg.Security.ExpirationTime)
+}
+
 func TestConfig_ConfigFileOnly(t *testing.T) {
 	configFile := `server:
  address: ":3717"
@@ -89,20 +105,4 @@ security:
 	os.Unsetenv("GOPHKEEPER_STORAGE_CONNECTION_STRING")
 	os.Unsetenv("GOPHKEEPER_SECURITY_JWT_KEY")
 	os.Unsetenv("GOPHKEEPER_SECURITY_EXPIRATION_TIME")
-}
-
-func TestConfig_DefaultValues(t *testing.T) {
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	os.Unsetenv("GOPHKEEPER_SERVER_ADDRESS")
-	os.Unsetenv("GOPHKEEPER_STORAGE_CONNECTION_STRING")
-	os.Unsetenv("GOPHKEEPER_SECURITY_JWT_KEY")
-	os.Unsetenv("GOPHKEEPER_SECURITY_EXPIRATION_TIME")
-
-	cfg, err := config.NewConfig()
-	require.NoError(t, err)
-
-	assert.Equal(t, "localhost:8080", cfg.Server.Address)
-	assert.Equal(t, "postgres://gophkeeper:1234@localhost:5432/gophkeeper?sslmode=disable", cfg.Storage.ConnectionString)
-	assert.Equal(t, "supersecretkey", cfg.Security.JWTKey)
-	assert.Equal(t, "3h", cfg.Security.ExpirationTime)
 }

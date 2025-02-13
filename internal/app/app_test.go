@@ -2,6 +2,8 @@ package app_test
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"testing"
 	"time"
 
@@ -12,6 +14,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 )
+
+func generateStr() string {
+	b := make([]byte, 6)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
+}
 
 func TestKeeperServiceIntegration(t *testing.T) {
 	dsn := "postgres://gophkeeper:1234@localhost:5432/test_gophkeeper?sslmode=disable"
@@ -41,7 +52,7 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	auth.SetTokenConfig("testsecret", "1h")
 
 	// Register test.
-	username := "test123"
+	username := generateStr()
 	password := "securePassword"
 	token, err := svc.Register(ctx, username, password)
 	assert.NoError(t, err, "Registration should succeed")

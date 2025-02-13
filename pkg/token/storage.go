@@ -9,7 +9,7 @@ import (
 
 // Storage is the interaface for saving and loading a token from file.
 type Storage interface {
-	// Load загружает токен
+	// Load loads token.
 	Load() (accessToken string, err error)
 	// Save saves token.
 	Save(accessToken string) error
