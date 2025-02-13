@@ -77,7 +77,7 @@ func AuthInterceptor() grpc.UnaryServerInterceptor {
 		token := md.Get(cookieHeader)[0]
 
 		// Parse and validate cookie from metadata.
-		userID := getUserID(token)
+		userID := GetUserID(token)
 		if userID == "" {
 			return nil, status.Errorf(codes.Unauthenticated, "Invalid token in %s", cookieHeader)
 		}
@@ -113,10 +113,10 @@ func GenerateToken(userID string) (string, error) {
 	return tokenString, nil
 }
 
-// getUserID extracts the UserID from a given JWT token string.
+// GetUserID extracts the UserID from a given JWT token string.
 // It parses the token, validates its signature and expiration, and retrieves the UserID claim.
 // If the token is invalid or expired, the function returns an empty string.
-func getUserID(tokenString string) string {
+func GetUserID(tokenString string) string {
 	claims := &Claims{}
 	// Parse token and extract claims.
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
@@ -131,7 +131,6 @@ func getUserID(tokenString string) string {
 		return ""
 	}
 
-	// Debug: fmt.Println("Token is valid")
 	return claims.UserID
 }
 

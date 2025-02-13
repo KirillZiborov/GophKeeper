@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/KirillZiborov/GophKeeper/internal/app"
+	"github.com/KirillZiborov/GophKeeper/internal/auth"
 	"github.com/KirillZiborov/GophKeeper/internal/config"
 	"github.com/KirillZiborov/GophKeeper/internal/storage"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,8 +38,10 @@ func TestKeeperServiceIntegration(t *testing.T) {
 		Cfg:   cfg,
 	}
 
+	auth.SetTokenConfig("testsecret", "1h")
+
 	// Register test.
-	username := "testUser"
+	username := "test123"
 	password := "securePassword"
 	token, err := svc.Register(ctx, username, password)
 	assert.NoError(t, err, "Registration should succeed")
@@ -51,17 +54,19 @@ func TestKeeperServiceIntegration(t *testing.T) {
 
 	// Login test.
 	token, err = svc.Login(ctx, username, password)
+	userID := auth.GetUserID(token)
 	assert.NoError(t, err, "Login should succeed with correct Secret")
 	assert.NotEmpty(t, token, "Token should not be empty")
+	assert.NotEmpty(t, userID, "userID should not be empty")
 
 	// AddSecret test.
 	data := "encrypted_data_example"
 	meta := "some metadata"
-	_, err = svc.AddSecret(ctx, token, data, meta)
+	_, err = svc.AddSecret(ctx, userID, data, meta)
 	assert.NoError(t, err, "AddSecret should succeed")
 
 	// Get credentials and check that it is saved in the database.
-	creds, err := svc.GetSecret(ctx, token)
+	creds, err := svc.GetSecret(ctx, userID)
 	assert.NoError(t, err, "GetSecret should succeed")
 	assert.GreaterOrEqual(t, len(creds), 1, "There should be at least one Secret")
 
@@ -70,11 +75,11 @@ func TestKeeperServiceIntegration(t *testing.T) {
 	credID := creds[0].ID
 	newData := "updated_encrypted_data"
 	newMeta := "updated metadata"
-	err = svc.EditSecret(ctx, credID, token, newData, newMeta)
+	err = svc.EditSecret(ctx, credID, userID, newData, newMeta)
 	assert.NoError(t, err, "EditSecret should succeed")
 
 	// Check that the secret is updated successfully.
-	creds, err = svc.GetSecret(ctx, token)
+	creds, err = svc.GetSecret(ctx, userID)
 	assert.NoError(t, err, "GetSecret after edit should succeed")
 	assert.GreaterOrEqual(t, len(creds), 1, "There should be at least one Secret")
 	assert.Equal(t, newData, creds[0].Data, "Secret data should be updated")
