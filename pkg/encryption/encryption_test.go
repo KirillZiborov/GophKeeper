@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/KirillZiborov/GophKeeper/pkg/encryption"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,7 @@ func TestEncryptDecryptWithKey(t *testing.T) {
 
 	decrypted, err := encryption.DecryptWithKey(encrypted, key)
 	require.NoError(t, err)
-	require.Equal(t, plaintext, decrypted, "Decrypted text should match the original")
+	assert.Equal(t, plaintext, decrypted, "Decrypted text should match the original")
 }
 
 func TestHashUnhash(t *testing.T) {

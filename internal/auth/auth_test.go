@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/KirillZiborov/GophKeeper/internal/auth"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -21,7 +22,7 @@ func TestGenerateTokenAndExtractUserID(t *testing.T) {
 	require.NoError(t, err)
 
 	extractedUserID := auth.GetUserID(token)
-	require.Equal(t, userID, extractedUserID, "Extracted userID should match the original")
+	assert.Equal(t, userID, extractedUserID, "Extracted userID should match the original")
 }
 
 func TestAuthInterceptor_GetUserIDFromContext(t *testing.T) {
@@ -44,7 +45,7 @@ func TestAuthInterceptor_GetUserIDFromContext(t *testing.T) {
 	interceptor := auth.AuthInterceptor()
 	resp, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{FullMethod: "/proto.Keeper/SomeMethod"}, handler)
 	require.NoError(t, err)
-	require.Equal(t, "user1", resp)
+	assert.Equal(t, "user1", resp)
 }
 
 func TestAuthInterceptor_NoToken(t *testing.T) {
@@ -61,5 +62,5 @@ func TestAuthInterceptor_NoToken(t *testing.T) {
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, st.Code(), status.Code(err))
+	assert.Equal(t, st.Code(), status.Code(err))
 }

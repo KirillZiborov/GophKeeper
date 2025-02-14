@@ -102,12 +102,11 @@ func (fs *FakeStorage) GetSecrets(userID string) ([]models.Secret, error) {
 	return secrets, nil
 }
 
-// GetSecretByID возвращает секрет по его id.
+// GetSecretByID returns secret by its id.
 func (fs *FakeStorage) GetSecretByID(secretID int64) (*models.Secret, error) {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
-	// Перебираем все секреты всех пользователей.
 	for _, userSecrets := range fs.secrets {
 		if secret, ok := userSecrets[secretID]; ok {
 			return secret, nil

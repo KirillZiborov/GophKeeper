@@ -12,10 +12,10 @@ import (
 )
 
 // ErrNotFound is returned when there is no data found.
-var ErrNotFound = errors.New("not found")
+var ErrNotFound = errors.New("user not found")
 
 // ErrAlreadyExists is returned when the data already exists.
-var ErrAlreadyExists = errors.New("already exists")
+var ErrAlreadyExists = errors.New("user already exists")
 
 // Storage defines interface for using PostgreSQL database.
 type Storage interface {
@@ -153,7 +153,7 @@ func (store *DBStore) GetSecretByID(secretID int64) (*models.Secret, error) {
 	return &secret, nil
 }
 
-// GetSecret retrives and returns all users credentials.
+// GetSecrets retrives and returns all users credentials.
 func (store *DBStore) GetSecrets(userID string) ([]models.Secret, error) {
 	query := `SELECT id, user_id, data, meta FROM secrets WHERE user_id=$1`
 	rows, err := store.db.Query(context.Background(), query, userID)
