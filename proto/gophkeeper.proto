@@ -1,0 +1,62 @@
+//gophkeeper.proto
+syntax = "proto3";
+
+package proto;
+
+option go_package = ".";
+
+message User {
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterRequest {
+  User userData = 1;
+}
+
+message RegisterResponse {}
+
+message LoginRequest {
+  User userData = 1;
+}
+
+message LoginResponse {}
+
+message Secret {
+  string data = 1;
+  string meta = 2;
+}
+
+message AddSecretRequest {
+  Secret Secret = 1;
+}
+
+message AddSecretResponse {
+  int64 Id = 1;
+}
+
+message EditSecretRequest {
+  int64 id = 1;
+  Secret Secret = 2;
+}
+
+message EditSecretResponse {}
+
+message GetSecretRequest {}
+
+message CountedSecret {
+   int64 id = 1;
+   Secret Secret = 2; 
+}
+
+message GetSecretResponse {
+  repeated CountedSecret Secret = 1;
+}
+
+service Keeper {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc AddSecret(AddSecretRequest) returns (AddSecretResponse);
+  rpc EditSecret(EditSecretRequest) returns (EditSecretResponse);
+  rpc GetSecret(GetSecretRequest) returns (GetSecretResponse);
+}
