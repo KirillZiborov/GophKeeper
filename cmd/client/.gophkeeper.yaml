@@ -1,2 +1,0 @@
-grpc_address: "localhost:5050"
-encryption_key: "gophkeeperclient"

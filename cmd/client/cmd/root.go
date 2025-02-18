@@ -57,7 +57,7 @@ func initConfig() {
 		}
 		// Search config in home and project directory with name ".gophkeeper".
 		viper.AddConfigPath(home)
-		viper.AddConfigPath(".")
+		viper.AddConfigPath("./internal/config")
 		viper.SetConfigName(".gophkeeper")
 	}
 

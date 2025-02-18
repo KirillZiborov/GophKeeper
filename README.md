@@ -72,7 +72,7 @@ GOPHKEEPER_SECURITY_EXPIRATION_TIME=3h
 ### Конфигурация клиента
 
 Перед запуском пользователь может задать настройки клиента в виде конфигурационного файла или набора переменных окружения.
-Расположение файла конфигурации: ./сmd/client/.gophkeeper.yaml либо $HOME/.gophkeeper.yaml
+Расположение файла конфигурации: ./internal/config/.gophkeeper.yaml либо $HOME/.gophkeeper.yaml
 
 Пример конфигурационного файла:
 
@@ -104,14 +104,14 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 
 ./cmd/server/gophkeeper_server
 
-## Запуск клиентского приложения
+## Сборка клиентского приложения
 
-1. Перейти в директорию /cmd/client
-
-2. Сборка клиента c информацией о версии и дате сборки бинарного файла:
+Сборка клиента для всех платформ c информацией о версии и дате сборки бинарного файла:
 
 ```
-go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d)" -o ./gophkeeper main.go
+chmod +x ./scripts/build_client.sh
+
+./scripts/build_client.sh 1.0.0
 ```
 
 ## Функции GophKeeper
@@ -122,7 +122,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 Пример команды регистрации:
 
 ```
-./gophkeeper register -u user@mail.сom -p 1234
+./dist/gophkeeper-[os]-[arch] register -u user@mail.сom -p 1234
 ```
 
 При успешной регистрации пользователя, сервер вернет токен доступа. Токен будет сохранен в текстовый файл token.txt.
@@ -130,7 +130,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 Токен доступа можно также запросить с помощью команды авторизации:
 
 ```
-./gophkeeper login -u user@mail.сom -p 1234
+./dist/gophkeeper-[os]-[arch] login -u user@mail.сom -p 1234
 ```
 
 После успешной регистрации/авторизации, пользователь может управлять своими приватными данными.
@@ -140,7 +140,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 1. Пример команды добавления пары логин/пароль:
 
 ```
-./gophkeeper secret create credentials \
+./dist/gophkeeper-[os]-[arch] secret create credentials \
   --login user@mail.com \
   --password 12345678 \
   --note mail.com
@@ -149,7 +149,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 2. Пример команды добавления данных банковской карты:
 
 ```
-./gophkeeper secret create card \
+./dist/gophkeeper-[os]-[arch] secret create card \
   --number 1234567812345678 \
   --date 02/25 \
   --holder Name \
@@ -160,7 +160,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 3. Пример команды добавления текстовой информации:
 
 ```
-./gophkeeper secret create text \
+./dist/gophkeeper-[os]-[arch] secret create text \
   --text "secret phrase" \
   --note secret
 ```
@@ -168,7 +168,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 4. Пример команды добавления бинарных данных:
 
 ```
-./gophkeeper secret create bin \
+./dist/gophkeeper-[os]-[arch] secret create bin \
   -f gophkeeper \
   --note code
 ```
@@ -178,7 +178,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 Команда запроса списка всех приватных данных:
 
 ```
-./gophkeeper secret all
+./dist/gophkeeper-[os]-[arch] secret all
 ```
 
 ### Обновление данных
@@ -188,7 +188,7 @@ go build -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d
 Пример команды обновления данных учетной записи:
 
 ```
-./gophkeeper secret update credentials \
+./dist/gophkeeper-[os]-[arch] secret update credentials \
   --id 1 \
   --login user@yandex.ru \
   --password 12345678 \
